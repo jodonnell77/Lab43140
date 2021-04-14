@@ -10,24 +10,16 @@
 #include <stdlib.h>
 #include <MKL25Z4.h>
 #include "3140_concur.h"
+#include "helper.c"
+#include "shared_structs.h"
 
 
 process_t* process_queue = NULL;
 process_t* current_process = NULL;
 
-process_t* get_last (process_t* startPt) {
-	//Given a start pointer, finds the last pointer of the linked list
-	while (startPt->nextProcess != NULL) {
-		startPt = startPt->nextProcess;
-	}
-	return startPt;
-}
-
 int process_create (void (*f)(void), int n) {
 	// Disable Global interrupts
-	uint32_t m;
-	m = __get_PRIMASK();
-	__disable_irq();
+	uint32_t m = disable_int();
 
 
 	unsigned int * procPointer =  process_stack_init(*f, n);
@@ -42,6 +34,7 @@ int process_create (void (*f)(void), int n) {
 		elementPt->init_sp = procPointer;
 		elementPt->nextProcess = NULL;
 		elementPt->size = n;
+		elementPt->is_blocked = 0; //ADDED
 
 		//Make this the only element of the list if the list is empty
 		if(process_queue == NULL) {
@@ -53,7 +46,7 @@ int process_create (void (*f)(void), int n) {
 		}
 
 		// Re-enable global interrupts
-		__set_PRIMASK(m);
+		enable_int(m);
 
 		return 0;
 	}
