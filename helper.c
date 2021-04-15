@@ -12,8 +12,8 @@
 // Helper Functions
 process_t* get_last (process_t* startPt) {
 	//Given a start pointer, finds the last pointer of the linked list
-	while (startPt->nextProcess != NULL) {
-		startPt = startPt->nextProcess;
+	while (startPt->next != NULL) {
+		startPt = startPt->next;
 	}
 	return startPt;
 }

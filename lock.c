@@ -8,6 +8,7 @@
 #include "3140_concur.h"
 #include "shared_structs.h"
 #include "lock.h"
+#include "helper.h"
 
 /**
  * Initialises the lock structure
@@ -50,7 +51,7 @@ void l_lock(lock_t* l) {
 		} else {
 			// Add process to end of blocked_queue_start
 			process_t* tempProcessPt = get_last(l->blocked_queue_start);
-			tempProcessPt->nextProcess = current_process;
+			tempProcessPt->next = current_process;
 		}
 
 	}
@@ -76,7 +77,7 @@ void l_unlock(lock_t* l) {
 		l->is_taken = 0;
 	} else {
 		l->currently_running = l->blocked_queue_start;
-		l->blocked_queue_start = l->blocked_queue_start->nextProcess;
+		l->blocked_queue_start = l->blocked_queue_start->next;
 		l->is_taken = 1;
 	}
 

@@ -16,83 +16,92 @@
 
 process_t* process_queue = NULL;
 process_t* current_process = NULL;
+process_t * process_tail = NULL;
 
-int process_create (void (*f)(void), int n) {
-	// Disable Global interrupts
-	uint32_t m = disable_int();
-
-
-	unsigned int * procPointer =  process_stack_init(*f, n);
-
-	if(procPointer == NULL) {
-		return -1;
-	} else {
-		//Initializes the process to be added onto the linked list
-		process_t* elementPt;
-		elementPt = malloc(sizeof(process_t));
-		elementPt->curr_sp = procPointer;
-		elementPt->init_sp = procPointer;
-		elementPt->nextProcess = NULL;
-		elementPt->size = n;
-		elementPt->is_blocked = 0; //ADDED
-
-		//Make this the only element of the list if the list is empty
-		if(process_queue == NULL) {
-			process_queue = elementPt;
-		} else {
-			//Create a temporary process state, and keep updating it until it is the last element
-			process_t* tempProcessPt = get_last(process_queue);
-			tempProcessPt->nextProcess = elementPt;
-		}
-
-		// Re-enable global interrupts
-		enable_int(m);
-
-		return 0;
+static process_t * pop_front_process() {
+	if (!process_queue) return NULL;
+	process_t *proc = process_queue;
+	process_queue = proc->next;
+	if (process_tail == proc) {
+		process_tail = NULL;
 	}
-
+	proc->next = NULL;
+	return proc;
 }
 
-void process_start(void) {
+static void push_tail_process(process_t *proc) {
+	if (!process_queue) {
+		process_queue = proc;
+	}
+	if (process_tail) {
+		process_tail->next = proc;
+	}
+	process_tail = proc;
+	proc->next = NULL;
+}
+
+static void process_free(process_t *proc) {
+	process_stack_free(proc->orig_sp, proc->size);
+	free(proc);
+}
+
+/* Called by the runtime system to select another process.
+   "cursp" = the stack pointer for the currently running process
+*/
+unsigned int * process_select (unsigned int * cursp) {
+	if (cursp) {
+		// Suspending a process which has not yet finished, save state and make it the tail
+		current_process->sp = cursp;
+		push_tail_process(current_process);
+	} else {
+		// Check if a process was running, free its resources if one just finished
+		if (current_process) {
+			process_free(current_process);
+		}
+	}
+
+	// Select the new current process from the front of the queue
+	current_process = pop_front_process();
+
+	if (current_process) {
+		// Launch the process which was just popped off the queue
+		return current_process->sp;
+	} else {
+		// No process was selected, exit the scheduler
+		return NULL;
+	}
+}
+
+/* Starts up the concurrent execution */
+void process_start (void) {
+	SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
+	PIT->MCR = 0;
+	PIT->CHANNEL[0].LDVAL = DEFAULT_SYSTEM_CLOCK / 10;
 	NVIC_EnableIRQ(PIT_IRQn);
-	SIM->SCGC6 = SIM_SCGC6_PIT_MASK; // Enable clock to PIT module
-	PIT->MCR = (0 << 1); // Enable clock for MCR
-	PIT->CHANNEL[0].LDVAL = 0x0FF00; // Set load value of zeroth PIT
-	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK; // Enable timer for interrupts
+	// Don't enable the timer yet. The scheduler will do so itself
+
+	// Bail out fast if no processes were ever created
+	if (!process_queue)
+		return;
 	process_begin();
 }
 
-extern unsigned int * process_select (unsigned int * cursp) {
+/* Create a new process */
+int process_create (void (*f)(void), int n) {
+	unsigned int *sp = process_stack_init(f, n);
+	if (!sp) return -1;
 
-	if (current_process != NULL) {
-		//Shifts the beginning of the linked list to one forward
-		process_queue = current_process->nextProcess;
-		//If a current stack pointer exists, change linked list
-		if (cursp != NULL) {
-
-			//If there was one element left in the linked list (current_process->nextProcess->nextProcess doesn't exist)
-			if (process_queue == NULL) { process_queue = current_process; }
-			else {
-				//Similar to process_create, reach end of linked list and append to it
-				process_t* tempProcessPt = get_last(process_queue);
-				tempProcessPt->nextProcess = current_process;
-			}
-			//Updating fields for current process
-			current_process->curr_sp = cursp;
-			current_process->nextProcess = NULL;
-
-		} else {
-			//Free up memory for the stack, then for the current process
-			process_stack_free(current_process->init_sp, current_process->size);
-			free(current_process);
-		}
+	process_t *proc = (process_t*) malloc(sizeof(process_t));
+	if (!proc) {
+		process_stack_free(sp, n);
+		return -1;
 	}
-	//If there is a beginning to the linked list, update current and return its stack pointer
-	if(process_queue != NULL) {
-		current_process = process_queue;
-		return  process_queue->curr_sp; }
-	//If there is no beginning to the linked list, then there is no current pointer.
-	return NULL;
+
+	proc->sp = proc->orig_sp = sp;
+	proc->size = n;
+
+	push_tail_process(proc);
+	return 0;
 }
 
 

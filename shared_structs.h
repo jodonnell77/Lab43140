@@ -11,9 +11,9 @@
 struct process_state {
 	unsigned int size;
 	unsigned int is_blocked; //0: not blocked, 1: is blocked
-	unsigned int* curr_sp;
-	unsigned int* init_sp;
-	struct process_state* nextProcess;
+	unsigned int* sp;
+	unsigned int* orig_sp;
+	struct process_state* next;
 };
 
 /**
