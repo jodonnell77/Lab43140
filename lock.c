@@ -8,7 +8,6 @@
 #include "3140_concur.h"
 #include "shared_structs.h"
 #include "lock.h"
-#include "helper.c"
 
 /**
  * Initialises the lock structure
@@ -67,8 +66,23 @@ void l_lock(lock_t* l) {
  * @param l pointer to lock to be unlocked
  */
 void l_unlock(lock_t* l) {
+	// Disable Global interrupts
+	uint32_t m = disable_int();
+
 	//If lock is 0, throw error
-	//If start_of_queue is NULL, set is_taken to 0, else set currently_running to blocked_queue_start, change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
+	//If blocked_queue_start is NULL, set is_taken to 0, else set currently_running to blocked_queue_start, change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
+	if(l->blocked_queue_start == NULL) {
+		l->currently_running = NULL;
+		l->is_taken = 0;
+	} else {
+		l->currently_running = l->blocked_queue_start;
+		l->blocked_queue_start = l->blocked_queue_start->nextProcess;
+		l->is_taken = 1;
+	}
+
+
+	//Re-enable global interrupts
+	enable_int(m);
 };
 
 
