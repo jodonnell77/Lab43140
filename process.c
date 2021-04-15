@@ -54,6 +54,12 @@ unsigned int * process_select (unsigned int * cursp) {
 		current_process->sp = cursp;
 		push_tail_process(current_process);
 	} else {
+		//BEGIN ADDED
+		// Do not run a process if it is blocked.
+		if(process_queue->is_blocked) {
+			process_blocked();
+		}
+		//END ADDED
 		// Check if a process was running, free its resources if one just finished
 		if (current_process) {
 			process_free(current_process);

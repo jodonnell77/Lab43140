@@ -42,9 +42,11 @@ void l_lock(lock_t* l) {
 	uint32_t m = disable_int();
 
 	if(l->is_taken == 0) {
+		current_process->is_blocked = 0;
 		l->currently_running = current_process;
 		l->is_taken = 1;
 	} else {
+		current_process->is_blocked = 1;
 		// If blocked_queue_start is empty, make this the only element
 		if(l->blocked_queue_start == NULL) {
 			l->blocked_queue_start = current_process;
@@ -53,7 +55,6 @@ void l_lock(lock_t* l) {
 			process_t* tempProcessPt = get_last(l->blocked_queue_start);
 			tempProcessPt->next = current_process;
 		}
-
 	}
 
 	//Re-enable global interrupts
@@ -80,7 +81,6 @@ void l_unlock(lock_t* l) {
 		l->blocked_queue_start = l->blocked_queue_start->next;
 		l->is_taken = 1;
 	}
-
 
 	//Re-enable global interrupts
 	enable_int(m);
