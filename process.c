@@ -16,7 +16,7 @@
 
 process_t* process_queue = NULL;
 process_t* current_process = NULL;
-process_t * process_tail = NULL;
+process_t* process_tail = NULL;
 
 static process_t * pop_front_process() {
 	if (!process_queue) return NULL;
@@ -29,7 +29,7 @@ static process_t * pop_front_process() {
 	return proc;
 }
 
-static void push_tail_process(process_t *proc) {
+void push_tail_process(process_t *proc) {
 	if (!process_queue) {
 		process_queue = proc;
 	}
@@ -57,7 +57,10 @@ unsigned int * process_select (unsigned int * cursp) {
 		//BEGIN ADDED
 		// Do not run a process if it is blocked.
 		if(process_queue->is_blocked) {
+			uint32_t m = disable_int();
 			process_blocked();
+			process_queue->is_blocked = 0;
+			enable_int(m);
 		}
 		//END ADDED
 		// Check if a process was running, free its resources if one just finished

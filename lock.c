@@ -73,6 +73,7 @@ void l_unlock(lock_t* l) {
 
 	//If lock is 0, throw error
 	//If blocked_queue_start is NULL, set is_taken to 0, else set currently_running to blocked_queue_start, change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
+	push_tail_process(l->currently_running);
 	if(l->blocked_queue_start == NULL) {
 		l->currently_running = NULL;
 		l->is_taken = 0;
