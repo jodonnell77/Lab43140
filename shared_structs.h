@@ -20,7 +20,6 @@ struct process_state {
  * This defines the lock structure
  */
 typedef struct lock_state {
-	struct process_state* currently_running; //NULL if lock_taken is 0
 	struct process_state* blocked_queue_start;
 	unsigned int is_taken; //0: available, 1: taken
 } lock_t;

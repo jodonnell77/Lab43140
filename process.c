@@ -52,17 +52,15 @@ unsigned int * process_select (unsigned int * cursp) {
 	if (cursp) {
 		// Suspending a process which has not yet finished, save state and make it the tail
 		current_process->sp = cursp;
-		push_tail_process(current_process);
-	} else {
-		//BEGIN ADDED
-		// Do not run a process if it is blocked.
-		if(process_queue->is_blocked) {
-			uint32_t m = disable_int();
-			process_blocked();
-			process_queue->is_blocked = 0;
-			enable_int(m);
+		//BEGIN ADDED - account for blocking
+		if(process_queue) {
+			if(current_process->is_blocked == 0){
+				push_tail_process(current_process);
+			}
 		}
 		//END ADDED
+		//push_tail_process(current_process);
+	} else {
 		// Check if a process was running, free its resources if one just finished
 		if (current_process) {
 			process_free(current_process);
@@ -71,6 +69,11 @@ unsigned int * process_select (unsigned int * cursp) {
 
 	// Select the new current process from the front of the queue
 	current_process = pop_front_process();
+	//BEGIN ADDED
+	if(cursp && process_queue) {
+		current_process->next = NULL;
+	}
+	//END ADDED
 
 	if (current_process) {
 		// Launch the process which was just popped off the queue
