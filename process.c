@@ -12,6 +12,7 @@
 #include "3140_concur.h"
 #include "shared_structs.h"
 #include "helper.h"
+#include "lock.h"
 
 
 process_t* process_queue = NULL;
@@ -54,8 +55,17 @@ unsigned int * process_select (unsigned int * cursp) {
 		current_process->sp = cursp;
 		//BEGIN ADDED - account for blocking
 		if(process_queue) {
-			if(current_process->is_blocked == 0){
+			if(current_process->is_blocked == 0) {
 				push_tail_process(current_process);
+			} else if (current_process->is_blocked == 1) {
+				if(current_process->process_lock->blocked_queue_start == NULL) {
+					current_process->process_lock->blocked_queue_start = current_process;
+					process_queue = current_process->next;
+				} else {
+					process_t* tempProcessPt = get_last(current_process->process_lock->blocked_queue_start);
+					tempProcessPt->next = current_process;
+					process_queue = current_process->next;
+				}
 			}
 		}
 		//END ADDED
@@ -109,6 +119,8 @@ int process_create (void (*f)(void), int n) {
 		return -1;
 	}
 
+	proc->is_blocked = 0;
+	proc->process_lock = NULL;
 	proc->sp = proc->orig_sp = sp;
 	proc->size = n;
 

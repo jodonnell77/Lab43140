@@ -14,6 +14,7 @@ struct process_state {
 	unsigned int* sp;
 	unsigned int* orig_sp;
 	struct process_state* next;
+	struct lock_state* process_lock;
 };
 
 /**
