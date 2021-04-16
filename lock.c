@@ -79,25 +79,26 @@ void l_unlock(lock_t* l) {
 		if(l->blocked_queue_start != NULL) {
 			l->blocked_queue_start->is_blocked = 0;
 
-			if(l->blocked_queue_start->next == NULL) {
-				if (process_queue == NULL) {
-					process_queue = l->blocked_queue_start;
-				} else {
-					process_t* trans_process = l->blocked_queue_start;
-					l->blocked_queue_start = l->blocked_queue_start->next;
-					trans_process->next = NULL;
-					trans_process->is_blocked = 0;
-					push_tail_process(trans_process);
-				}
-
+			if (process_queue == NULL) {
+				process_queue = l->blocked_queue_start;
+			} else {
+				process_t* trans_process = l->blocked_queue_start;
+				l->blocked_queue_start = l->blocked_queue_start->next;
+				trans_process->next = NULL;
+				trans_process->is_blocked = 0;
+				push_tail_process(trans_process);
 			}
 
+			if(l->blocked_queue_start->next == NULL) {
+				l->blocked_queue_start = NULL;
+			} else {
+				process_t* temp = l->blocked_queue_start->next;
+				l->blocked_queue_start = temp;
+			}
 
+			l->is_taken = 0;
 		}
-		process_t* temp = l->blocked_queue_start->next;
-		l->blocked_queue_start = temp;
 
-		l->is_taken = 0;
 	}
 
 	//Re-enable global interrupts

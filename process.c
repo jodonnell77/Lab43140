@@ -46,59 +46,62 @@ static void process_free(process_t *proc) {
 	free(proc);
 }
 
+static void add_to_blocked_queue(process_t *proc, lock_t *lock) {
+	if (lock->blocked_queue_start == NULL) {
+		lock->blocked_queue_start = proc;
+	} else {
+		process_t* temp_blocked_queue = get_last(lock->blocked_queue_start);
+		temp_blocked_queue->next = proc;
+	}
+}
+
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
 unsigned int * process_select (unsigned int * cursp) {
-	if (cursp) {
-		// Suspending a process which has not yet finished, save state and make it the tail
-		current_process->sp = cursp;
-		//BEGIN ADDED - account for blocking
-		if(process_queue) {
-			if(current_process->is_blocked == 0) {
-				push_tail_process(current_process);
-			} else if (current_process->is_blocked == 1) {
-				if(current_process->process_lock->blocked_queue_start == NULL) {
-					current_process->process_lock->blocked_queue_start = current_process;
-					process_queue = current_process->next;
-				} else {
-					process_t* tempProcessPt = get_last(current_process->process_lock->blocked_queue_start);
-					tempProcessPt->next = current_process;
-					process_queue = current_process->next;
-				}
+	if(current_process->is_blocked == 0) {
+		if (cursp) {
+			// Suspending a process which has not yet finished, save state and make it the tail
+			current_process->sp = cursp;
+			push_tail_process(current_process);
+		} else {
+			// Check if a process was running, free its resources if one just finished
+			if (current_process) {
+				process_free(current_process);
 			}
 		}
-		//END ADDED
-		//push_tail_process(current_process);
-	} else {
-		// Check if a process was running, free its resources if one just finished
+
+		// Select the new current process from the front of the queue
+		current_process = pop_front_process();
+
 		if (current_process) {
-			process_free(current_process);
+			// Launch the process which was just popped off the queue
+			return current_process->sp;
+		} else {
+			// No process was selected, exit the scheduler
+			return NULL;
 		}
-	}
 
-	// Select the new current process from the front of the queue
-	current_process = pop_front_process();
-	//BEGIN ADDED
-	if(cursp && process_queue) {
-		current_process->next = NULL;
-	}
-	//END ADDED
-
-	if (current_process) {
-		// Launch the process which was just popped off the queue
-		return current_process->sp;
 	} else {
-		// No process was selected, exit the scheduler
-		return NULL;
+		if(cursp) {
+			process_t* temp = current_process;
+
+			//take current process out of process_queue
+			process_queue = process_queue->next;
+
+			// add to the blocked queue
+			add_to_blocked_queue(current_process, current_process->process_lock);
+		}
+
 	}
+	return NULL;
 }
 
 /* Starts up the concurrent execution */
 void process_start (void) {
 	SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
 	PIT->MCR = 0;
-	PIT->CHANNEL[0].LDVAL = DEFAULT_SYSTEM_CLOCK / 10;
+	PIT->CHANNEL[0].LDVAL =  0x0FF00;
 	NVIC_EnableIRQ(PIT_IRQn);
 	// Don't enable the timer yet. The scheduler will do so itself
 
