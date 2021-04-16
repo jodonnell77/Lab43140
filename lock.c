@@ -75,13 +75,14 @@ void l_unlock(lock_t* l) {
 	//If blocked_queue_start is NULL, set is_taken to 0, else set currently_running to blocked_queue_start, change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
 
 	if(l->is_taken == 1) {
-		l->is_taken = 0;
 		if(l->blocked_queue_start != NULL){
 			process_t* trans_process = l->blocked_queue_start;
 			l->blocked_queue_start = l->blocked_queue_start->next;
 			trans_process->next = NULL;
 			trans_process->is_blocked = 0;
 			push_tail_process(trans_process);
+		} else {
+			l->is_taken = 0;
 		}
 	}
 
