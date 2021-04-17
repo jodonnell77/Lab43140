@@ -42,10 +42,8 @@ void l_lock(lock_t* l) {
 	if(l->is_taken == 0) {
 		//current_process->is_blocked = 0;
 		l->is_taken = 1;
-		current_process->process_lock = l;
 	} else {
 		current_process->is_blocked = 1;
-		current_process->process_lock = l;
 		add_to_blocked_queue(current_process, l);
 		process_blocked();
 	}
@@ -69,7 +67,6 @@ void l_unlock(lock_t* l) {
 	//change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
 
 	if(l->is_taken == 1) {
-		current_process->process_lock = NULL;
 		if(l->blocked_queue_start != NULL) {
 			l->blocked_queue_start->is_blocked = 0;
 

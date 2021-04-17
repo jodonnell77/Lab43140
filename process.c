@@ -101,7 +101,6 @@ int process_create (void (*f)(void), int n) {
 	}
 
 	proc->is_blocked = 0;
-	proc->process_lock = NULL;
 	proc->sp = proc->orig_sp = sp;
 	proc->size = n;
 
