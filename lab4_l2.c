@@ -1,14 +1,14 @@
-/*
- * lab4_l2.c
- *
- *  Created on: Apr 16, 2021
- *      Author: JohnO
- *
- *
- *
- *      This test case make sure that parallelization works without locks still and we didnt break anything
- */
-
+///*
+// * lab4_l2.c
+// *
+// *  Created on: Apr 16, 2021
+// *      Author: JohnO
+// *
+// *
+// *
+// *      This test case make sure that parallelization works without locks still and we didnt break anything
+// */
+//
 //#include "3140_concur.h"
 //#include "utils.h"
 //

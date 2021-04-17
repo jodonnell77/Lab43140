@@ -46,24 +46,40 @@ static void process_free(process_t *proc) {
 	free(proc);
 }
 
-static void add_to_blocked_queue(process_t *proc, lock_t *lock) {
-	if (lock->blocked_queue_start == NULL) {
-		lock->blocked_queue_start = proc;
-	} else {
-		process_t* temp_blocked_queue = get_last(lock->blocked_queue_start);
-		temp_blocked_queue->next = proc;
-	}
-}
-
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
 unsigned int * process_select (unsigned int * cursp) {
-	if(current_process->is_blocked == 0) {
-		if (cursp) {
+//	if(current_process->is_blocked == 0) {
+//		if (cursp) {
+//			// Suspending a process which has not yet finished, save state and make it the tail
+//			current_process->sp = cursp;
+//			push_tail_process(current_process);
+//		} else if (current_process) {
+//			// Check if a process was running, free its resources if one just finished
+//			process_free(current_process);
+//		}
+//	} else if (cursp){
+//		// add to the blocked queue
+//		add_to_blocked_queue(current_process, current_process->process_lock);
+//	}
+//
+//	// Select the new current process from the front of the queue
+//	current_process = pop_front_process();
+//
+//	if (current_process) {
+//		// Launch the process which was just popped off the queue
+//		return current_process->sp;
+//	}
+//	// No process was selected, exit the scheduler
+//	return NULL;
+//}
+	if (cursp) {
 			// Suspending a process which has not yet finished, save state and make it the tail
 			current_process->sp = cursp;
-			push_tail_process(current_process);
+			if(current_process->is_blocked == 0){
+				push_tail_process(current_process);
+			}
 		} else {
 			// Check if a process was running, free its resources if one just finished
 			if (current_process) {
@@ -81,21 +97,7 @@ unsigned int * process_select (unsigned int * cursp) {
 			// No process was selected, exit the scheduler
 			return NULL;
 		}
-
-	} else {
-		if(cursp) {
-			process_t* temp = current_process;
-
-			//take current process out of process_queue
-			process_queue = process_queue->next;
-
-			// add to the blocked queue
-			add_to_blocked_queue(current_process, current_process->process_lock);
-		}
-
 	}
-	return NULL;
-}
 
 /* Starts up the concurrent execution */
 void process_start (void) {

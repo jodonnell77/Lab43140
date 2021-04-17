@@ -30,3 +30,20 @@ uint32_t disable_int(void){
 	//OR NVIC_DisableIRQ(PIT_IRQn)
 	return m;
 };
+
+void add_to_blocked_queue(process_t *proc, lock_t *lock) {
+	if (lock->blocked_queue_start == NULL) {
+		lock->blocked_queue_start = proc;
+	} else {
+		process_t* temp_blocked_queue = get_last(lock->blocked_queue_start);
+		temp_blocked_queue->next = proc;
+	}
+}
+
+process_t* pop_from_blocked_queue(lock_t* l) {
+	if (!l->blocked_queue_start) return NULL;
+	process_t *proc = l->blocked_queue_start;
+	l->blocked_queue_start = proc->next;
+	proc->next = NULL;
+	return proc;
+}

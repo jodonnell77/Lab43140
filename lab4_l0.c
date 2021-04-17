@@ -1,8 +1,8 @@
-#include "3140_concur.h"
-#include "utils.h"
-#include "lock.h"
-
-
+//#include "3140_concur.h"
+//#include "utils.h"
+//#include "lock.h"
+//
+//
 //lock_t l;
 //void p1(void){
 //	int i= 0;
