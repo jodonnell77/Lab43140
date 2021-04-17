@@ -65,24 +65,13 @@ void l_unlock(lock_t* l) {
 	uint32_t m = disable_int();
 
 	//If lock is 0, throw error
-	//If blocked_queue_start is NULL, set is_taken to 0, else set currently_running to blocked_queue_start, change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
+	//If blocked_queue_start is NULL, set is_taken to 0, else set currently_running to blocked_queue_start,
+	//change blocked_queue_start to blocked_queue_start->next, and keep is_taken as 1.
 
 	if(l->is_taken == 1) {
 		current_process->process_lock = NULL;
 		if(l->blocked_queue_start != NULL) {
 			l->blocked_queue_start->is_blocked = 0;
-
-//			//Dequeue from blocked_queue_start, add to process_queue
-//			if (process_queue == NULL) {
-//				process_queue = l->blocked_queue_start;
-//				process_queue->next = NULL;
-//				l->blocked_queue_start = l->blocked_queue_start->next;
-//			} else {
-//				process_t* trans_process = l->blocked_queue_start;
-//				l->blocked_queue_start = l->blocked_queue_start->next;
-//				trans_process->next = NULL;
-//				push_tail_process(trans_process);
-//			}
 
 			//Dequeue from blocked_queue_start
 			process_t* temp = pop_from_blocked_queue(l);

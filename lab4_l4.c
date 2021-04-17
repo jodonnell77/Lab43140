@@ -1,10 +1,10 @@
-/*
- * lab4_l4.c
- *
- *  Created on: Apr 16, 2021
- *      Author: JohnO
- */
-
+///*
+// * lab4_l4.c
+// *
+// *  Created on: Apr 16, 2021
+// *      Author: JohnO
+// */
+//
 //#include "3140_concur.h"
 //#include "utils.h"
 //#include "lock.h"
@@ -49,4 +49,4 @@
 //	while(1);
 //	return 0;
 //}
-
+//

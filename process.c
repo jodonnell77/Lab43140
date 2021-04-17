@@ -50,30 +50,6 @@ static void process_free(process_t *proc) {
    "cursp" = the stack pointer for the currently running process
 */
 unsigned int * process_select (unsigned int * cursp) {
-//	if(current_process->is_blocked == 0) {
-//		if (cursp) {
-//			// Suspending a process which has not yet finished, save state and make it the tail
-//			current_process->sp = cursp;
-//			push_tail_process(current_process);
-//		} else if (current_process) {
-//			// Check if a process was running, free its resources if one just finished
-//			process_free(current_process);
-//		}
-//	} else if (cursp){
-//		// add to the blocked queue
-//		add_to_blocked_queue(current_process, current_process->process_lock);
-//	}
-//
-//	// Select the new current process from the front of the queue
-//	current_process = pop_front_process();
-//
-//	if (current_process) {
-//		// Launch the process which was just popped off the queue
-//		return current_process->sp;
-//	}
-//	// No process was selected, exit the scheduler
-//	return NULL;
-//}
 	if (cursp) {
 			// Suspending a process which has not yet finished, save state and make it the tail
 			current_process->sp = cursp;
